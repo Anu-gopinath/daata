@@ -1,0 +1,92 @@
+#importing the required libraries0
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt 
+from tensorflow import keras
+from tensorflow.keras.layers import 
+from tensorflow.keras.datasets import imdb
+
+
+#load dataset
+data=pd.read_csv("C:/Users/HP/Desktop/movie.csv")
+data.head()
+
+# Checking the missing values
+data.isnull().sum()
+
+#Exploratory data Analysis
+sns.boxplot(data[rating])
+plt.show()
+sns.countplot(data[rating])
+plt.show()
+import warnings
+warnings.filterwarnings("ignore")
+sns.distplot(data['rating'])
+
+#Text Pre-processing
+#number of words
+data['word_count'] = data['review'].apply(lamda x: len(str(x).split("")))
+data[['review,'word-count']].head()
+
+#Number of stopwords
+from nltk.corpus import stopwords
+stop = stopwords.words('english')
+data['stopwords']=data['review'].apply(lamda x: len([x for x in x.split() if x in stop]))
+data[['review','stopwords']].head()
+
+#removal of stop words
+from nltk.corpus import stopwords
+stop=stopwords.words('english')
+data['review']=data['review'].apply(lambda x:" ".join(x for x in x.split() if x not in stop))
+data['review'].head()
+
+#wordcloud
+all_words = ' '.join([text for text in data['review']])
+from wordcloud import WordCloud
+wordcloud= WordCloud(width=800,height=500,random_state=21,max_front_size=110).generate(all_words)
+plt.figure(figsize=(10,7))
+plt.imshow(wordcloud,interpolation="bilinear")
+plt.axis('off')
+plt.show()
+
+
+
+
+
+x_val=x[:5000]
+x_train=x[5000:]
+y_val=y[:5000]
+y_train=y[5000:]
+
+dropout_rate = 0.3
+batch_size = 1000
+activation_func = keras.activations.relu
+
+SCHEMA = [
+
+    Embedding( 5000 , 10, input_length=120 ), # 5000 -> num of words , 10 -> output_dim , 120 -> length of input seqeunces
+    LSTM( 32 ) ,
+    Dropout(dropout_rate),
+    Dense( 32 , activation=activation_func ) ,
+    Dropout(dropout_rate),
+    Dense( 2 , activation=keras.activations.softmax )
+    
+]
+
+model = keras.Sequential(SCHEMA)
+model.compile(
+    optimizer=keras.optimizers.Adam() ,
+    loss=keras.losses.categorical_crossentropy ,
+    metrics=[ 'accuracy' ]
+)
+
+x_train.shape,y_train.shape
+hist = model.fit(x_train,y_train,batchsize=128,epochs=2,validation_data=(x_val,y_val))
+
+result=hist.history
+plt.plot(result['val_acc,label="val acc")
+plt.plot(result['acc'],label="train acc")
+plt.legend()
+plt.show()
+model.evaluate(x_val,y_val)
